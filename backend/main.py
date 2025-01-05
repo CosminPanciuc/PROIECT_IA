@@ -37,8 +37,8 @@ app = FastAPI()
 
 
 class PortfolioInput(BaseModel):
-    symbols: list
-    risk: float | None = 100
+    symbols: list = (["NVDA", "AMD", "MSFT"],)
+    risk: float | None = 1000
     num_particles: int | None = 50
     iter: int | None = 100
 
@@ -64,10 +64,9 @@ def optimize_portfolio(data: PortfolioInput):
         iter=data.iter,
     )
 
-    # Perform optimization
     optimal_allocation = pso.optimize()
+    pso.plot_positions()
 
-    # Return the optimal portfolio allocation
     return {
         "symbols": data.symbols,
         "allocation": optimal_allocation.tolist(),

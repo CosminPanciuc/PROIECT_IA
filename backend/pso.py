@@ -1,4 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.animation import FuncAnimation
 
 
 def portfolio_objective(weights, returns, covariance, risk=100):
@@ -34,11 +36,15 @@ class PSO:
             np.argmin(self.personal_best_scores)
         ]
 
+        self.positions_history = []
+
     def evaluate(self, weights):
         return portfolio_objective(weights, self.returns, self.covariance, self.risk)
 
     def optimize(self):
         for iteration in range(self.iter):
+            self.positions_history.append(self.positions.copy())
+
             for i, position in enumerate(self.positions):
                 score = self.evaluate(self.positions[i])
 
@@ -64,3 +70,26 @@ class PSO:
             ]
 
         return self.global_best_position
+
+    def plot_positions(self):
+        fig, ax = plt.subplots()
+        ax.set_title("Particle Swarm Optimization - Particle Positions")
+
+        scatter = ax.scatter([], [], c="blue", label="Particle positions", alpha=0.7)
+
+        ax.set_xlabel("Asset 1 Weight")
+        ax.set_ylabel("Asset 2 Weight")
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+
+        def update(frame):
+            positions_at_frame = self.positions_history[frame]
+            scatter.set_offsets(positions_at_frame[:, :2])
+            return (scatter,)
+
+        ani = FuncAnimation(
+            fig, update, frames=len(self.positions_history), interval=100, blit=True
+        )
+
+        ani.save("pso_animation.mp4", writer="ffmpeg", fps=10)
+        plt.close(fig)
