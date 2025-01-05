@@ -1,0 +1,7 @@
+numpy
+fastapi
+fastapi[standard]
+pydantic
+requests
+pandas
+yfinance
