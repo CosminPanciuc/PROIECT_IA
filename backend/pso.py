@@ -2,6 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
 
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+import numpy as np
+
+
 
 def portfolio_objective(weights, returns, covariance, risk=100):
     portfolio_return = np.dot(weights, returns)
@@ -119,4 +125,32 @@ class PSO:
         )
 
         ani.save("pso_animation.mp4", writer="ffmpeg", fps=10)
+        plt.close(fig)
+    
+    def plot_positions_3d(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_title("Particle Swarm Optimization - Particle Positions")
+
+        scatter = ax.scatter([], [], [], c="blue", label="Particle positions", alpha=0.7)
+
+        ax.set_xlabel("Asset 1 Weight")
+        ax.set_ylabel("Asset 2 Weight")
+        ax.set_zlabel("Asset 3 Weight")
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_zlim(0, 1)
+
+        def update(frame):
+            positions_at_frame = self.positions_history[frame]
+            scatter._offsets3d = (positions_at_frame[:, 0], 
+                                positions_at_frame[:, 1], 
+                                positions_at_frame[:, 2])
+            return (scatter,)
+
+        ani = FuncAnimation(
+            fig, update, frames=len(self.positions_history), interval=100, blit=False
+        )
+
+        ani.save("pso_animation_3d.mp4", writer="ffmpeg", fps=10)
         plt.close(fig)

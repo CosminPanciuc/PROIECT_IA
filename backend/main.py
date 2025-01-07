@@ -66,6 +66,7 @@ def optimize_portfolio(data: PortfolioInput):
 
     optimal_allocation = pso.optimize()
     pso.plot_positions()
+    pso.plot_positions_3d()
 
     return {
         "symbols": data.symbols,
