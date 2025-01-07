@@ -4,6 +4,7 @@ import numpy as np
 import yfinance as yf
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 from backend.pso import PSO
 
@@ -36,6 +37,15 @@ def calculate_covariance(stock_prices):
 app = FastAPI()
 
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class PortfolioInput(BaseModel):
     symbols: list = ("NVDA", "AMD", "MSFT")
     risk: float | None = 1000
@@ -65,8 +75,8 @@ def optimize_portfolio(data: PortfolioInput):
     )
 
     optimal_allocation = pso.optimize()
-    pso.plot_positions()
-    pso.plot_positions_3d()
+    # pso.plot_positions()
+    # pso.plot_positions_3d()
 
     return {
         "symbols": data.symbols,
