@@ -11,23 +11,43 @@ def portfolio_objective(weights, returns, covariance, risk=100):
     for weight in weights:
         if weight > 0.5:
             penalty += 1000000
+        # if weight < 0:
+        #     penalty += 1000000000
 
     return -(portfolio_return - risk * portfolio_risk) + penalty
 
 
+def rastrigin_function(weights):
+    A = 10
+    n = len(weights)
+    return A * n + sum((w**2 - A * np.cos(2 * np.pi * w)) for w in weights)
+
+
 class PSO:
-    def __init__(self, num_particles, num_assets, returns, covariance, risk=1, iter=100):
+    def __init__(
+        self, num_particles, num_assets, returns, covariance, risk=1, iter=100, test=False
+    ):
         self.num_particles = num_particles
         self.num_assets = num_assets
         self.returns = returns
         self.covariance = covariance
         self.risk = risk
         self.iter = iter
-        self.inertia = 0.5
-        self.cognitive = 2.0
-        self.social = 2.0
 
-        self.positions = np.random.dirichlet(np.ones(num_assets), size=num_particles)
+        self.test = test
+
+        if test:
+            self.positions = np.random.uniform(-5.12, 5.12, (num_particles, num_assets))
+            self.inertia = 0.9
+            self.cognitive = 1.5
+            self.social = 1.5
+        else:
+            # self.positions = np.random.uniform(0, 0.5, (num_particles, num_assets))
+            self.positions = np.random.dirichlet(np.ones(num_assets), size=num_particles)
+            self.inertia = 0.5
+            self.cognitive = 2.0
+            self.social = 2.0
+
         self.velocities = np.random.uniform(-1, 1, (num_particles, num_assets))
 
         self.personal_best_positions = self.positions.copy()
@@ -39,7 +59,10 @@ class PSO:
         self.positions_history = []
 
     def evaluate(self, weights):
-        return portfolio_objective(weights, self.returns, self.covariance, self.risk)
+        if self.test:
+            return rastrigin_function(weights)
+        else:
+            return portfolio_objective(weights, self.returns, self.covariance, self.risk)
 
     def optimize(self):
         for iteration in range(self.iter):
@@ -62,8 +85,12 @@ class PSO:
                 )
 
                 self.positions[i] += self.velocities[i]
-                self.positions[i] = np.clip(self.positions[i], 0, 0.5)
-                self.positions[i] /= np.sum(self.positions[i])
+
+                if self.test:
+                    self.positions[i] = np.clip(self.positions[i], -5.12, 5.12)
+                else:
+                    self.positions[i] = np.clip(self.positions[i], 0, 0.5)
+                    self.positions[i] /= np.sum(self.positions[i])
 
             self.global_best_position = self.personal_best_positions[
                 np.argmin(self.personal_best_scores)
